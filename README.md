@@ -46,7 +46,6 @@ Select this option to close the app
 4. Move **DragOptions.exe** (and optionally **Languages.ini**) to the folder of your choice.
 5. Double-click **DragOptions.exe** to launch the app to the System Tray.
 6. If you skipped step 3, then, in the SmartScreen window, click **More info** and then **Run anyway**.
-7. Click **OK** when the **Done** message box appears.
 
 **Note**: If you move **DragOptions.exe** to a new location, just exit the app (if it's still in the System Tray). Then double-click the app to automatically update the startup registry entry.
 
