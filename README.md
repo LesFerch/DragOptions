@@ -4,7 +4,7 @@
 
 ## Set Mouse Drag Sensitivity and Optionally Disable Right-Click Drag
 
-This program loads to the Sytem Tray and provides options that help prevent unwanted drag operations.
+This program loads to the System Tray and provides options that help prevent unwanted drag operations.
 
 **Note**: The app adds an HKCU registry entry to run itself on login, so that it's always in the System Tray. See the **Exit** option below for removal. 
 
