@@ -12,7 +12,7 @@ This program loads to the System Tray and provides options that help prevent unw
 
 ![image](https://github.com/LesFerch/DragOptions/assets/79026235/14aea680-baaa-4eaf-8895-bf6d96cfa45b)
 
-Select this option to set the mouse drag sensitivity. The change is immediate and permanent (per user) when you clck **OK**. The value is the number of pixels you must move the cursor, with the button held down, before a drag operation starts.
+Select this option to set the mouse drag sensitivity. The change is immediate and permanent (per user) when you click **OK**. The value is the number of pixels you must move the cursor, with the button held down, before a drag operation starts.
 
 On high density screens, the default value of 4 pixels is too little for most users and causes unwanted drag events. This is most problematic when you only want the right-click options to appear instead of the drag options. Similar issues occur with tablets and pen input. Increasing this value should prevent the unwanted drag events.
 
