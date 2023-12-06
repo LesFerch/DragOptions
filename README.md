@@ -34,7 +34,7 @@ Select this option to close the app
 
 **Note**: Hold down the **Ctrl** key when selecting **Exit** to also remove the registry entry that makes it run on login.
 
-# How to Download and Install
+## How to Download and Install
 
 [![image](https://user-images.githubusercontent.com/79026235/152910441-59ba653c-5607-4f59-90c0-bc2851bf2688.png)Download the zip file](https://github.com/LesFerch/DragOptions/releases/download/1.0.1/DragOptions.zip)
 
@@ -49,7 +49,7 @@ Select this option to close the app
 
 **Note**: If you move **DragOptions.exe** to a new location, just exit the app (if it's still in the System Tray). Then double-click the app to automatically update the startup registry entry.
 
-# It's Multilingual!
+## It's Multilingual!
 
 Here's an example of DragOptions installed for German (de-DE):
 
