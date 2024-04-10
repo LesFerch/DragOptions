@@ -47,6 +47,8 @@ Select this option to close the app
 5. Double-click **DragOptions.exe** to launch the app to the System Tray.
 6. If you skipped step 3, then, in the SmartScreen window, click **More info** and then **Run anyway**.
 
+**Note**: Some antivirus software may falsely detect the download as a virus. This can happen any time you download a new executable and may require extra steps to whitelist the file.
+
 **Note**: If you move **DragOptions.exe** to a new location, just exit the app (if it's still in the System Tray). Then double-click the app to automatically update the startup registry entry.
 
 ## It's Multilingual!
