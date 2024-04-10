@@ -36,7 +36,7 @@ Select this option to close the app
 
 ## How to Download and Install
 
-[![image](https://user-images.githubusercontent.com/79026235/152910441-59ba653c-5607-4f59-90c0-bc2851bf2688.png)Download the zip file](https://github.com/LesFerch/DragOptions/releases/download/1.0.1/DragOptions.zip)
+[![image](https://github.com/LesFerch/WinSetView/assets/79026235/0188480f-ca53-45d5-b9ff-daafff32869e)Download the zip file](https://github.com/LesFerch/DragOptions/releases/download/1.0.1/DragOptions.zip)
 
 **Note**: Some antivirus software may falsely detect the download as a virus. This can happen any time you download a new executable and may require extra steps to whitelist the file.
 
@@ -59,4 +59,4 @@ The file **Language.ini** contains the app's text strings for all languages exce
 
 \
 \
-[![image](https://user-images.githubusercontent.com/79026235/153264696-8ec747dd-37ec-4fc1-89a1-3d6ea3259a95.png)](https://github.com/LesFerch/DragOptions)
+[![image](https://github.com/LesFerch/WinSetView/assets/79026235/63b7acbc-36ef-4578-b96a-d0b7ea0cba3a)](https://github.com/LesFerch/DragOptions)
