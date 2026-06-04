@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -14,11 +15,13 @@ namespace SystemTrayApp
     {
         static string sTip = "Drag Options";
         static string sChange = "Change drag sensitivity";
+        static string sChangeClick = "Change double-click sensitivity";
         static string sDisable = "Disable right-click drag";
         static string sEnable = "Enable right-click drag";
         static string sHelp = "Help";
         static string sExit = "Exit (Ctrl to remove)";
         static string sInput = "Enter the number of pixels the cursor must move to start a drag (default = 4)";
+        static string sInputClick = "Enter the number of pixels the cursor is allowed to move between clicks (default = 4)";
         static string sRunning = "Another instance of the application is already running";
 
         static NotifyIcon notifyIcon;
@@ -29,6 +32,9 @@ namespace SystemTrayApp
         [STAThread]
         static void Main()
         {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
             LoadLanguageStrings();
 
             if (!mutex.WaitOne(TimeSpan.Zero, true))
@@ -51,15 +57,6 @@ namespace SystemTrayApp
             notifyIcon.Visible = true;
             notifyIcon.Text = sTip;
 
-            // Create a context menu for the system tray icon
-            ContextMenu contextMenu = new ContextMenu();
-            contextMenu.MenuItems.Add(sChange, ChangeDragSensitivity_Click);
-            contextMenu.MenuItems.Add(sDisable, DisableRightClickDrag_Click);
-            contextMenu.MenuItems.Add(sEnable, EnableRightClickDrag_Click);
-            contextMenu.MenuItems.Add(sHelp, Help_Click);
-            contextMenu.MenuItems.Add(sExit, Exit_Click);
-            notifyIcon.ContextMenu = contextMenu;
-
             // Handle left-click on the system tray icon
             notifyIcon.MouseClick += NotifyIcon_MouseClick;
 
@@ -80,6 +77,8 @@ namespace SystemTrayApp
             sHelp = iniFile.ReadString(lang, "sHelp", sHelp);
             sExit = iniFile.ReadString(lang, "sExit", sExit);
             sInput = iniFile.ReadString(lang, "sInput", sInput);
+            sInputClick = iniFile.ReadString(lang, "sInputClick", sInputClick);
+            sChangeClick = iniFile.ReadString(lang, "sChangeClick", sChangeClick);
             sRunning = iniFile.ReadString(lang, "sRunning", sRunning);
         }
 
@@ -121,9 +120,17 @@ namespace SystemTrayApp
         {
             if (e.Button == MouseButtons.Left || e.Button == MouseButtons.Right)
             {
-                // Show the context menu when either left or right-clicked
-                MethodInfo method = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
-                method.Invoke(notifyIcon, null);
+                TrayMenuForm.Show(
+                    new[] { sChange, sChangeClick, sDisable, sEnable, sHelp, sExit },
+                    new EventHandler[] {
+                        ChangeDragSensitivity_Click,
+                        ChangeDoubleClickSensitivity_Click,
+                        DisableRightClickDrag_Click,
+                        EnableRightClickDrag_Click,
+                        Help_Click,
+                        Exit_Click
+                    }
+                );
             }
         }
 
@@ -136,7 +143,7 @@ namespace SystemTrayApp
                 {
                     // Prompt the user to change drag sensitivity and update the registry
                     string currentDragWidth = key.GetValue("DragWidth")?.ToString();
-                    string newDragWidth = Microsoft.VisualBasic.Interaction.InputBox(sInput, sChange, currentDragWidth);
+                    string newDragWidth = InputDialog.Show(sInput, sChange, currentDragWidth);
 
                     if (newDragWidth != null && int.TryParse(newDragWidth, out int newValue))
                     {
@@ -151,6 +158,32 @@ namespace SystemTrayApp
         {
             SystemParametersInfo(SPI_SETDRAGWIDTH, (uint)value, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
             SystemParametersInfo(SPI_SETDRAGHEIGHT, (uint)value, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+        }
+
+        // Handle changing the double-click sensitivity
+        static void ChangeDoubleClickSensitivity_Click(object sender, EventArgs e)
+        {
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Mouse", true))
+            {
+                if (key != null)
+                {
+                    // Prompt the user to change double-click sensitivity and update the registry
+                    string currentDoubleClickWidth = key.GetValue("DoubleClickWidth")?.ToString();
+                    string newDoubleClickWidth = InputDialog.Show(sInputClick, sChangeClick, currentDoubleClickWidth);
+
+                    if (newDoubleClickWidth != null && int.TryParse(newDoubleClickWidth, out int newValue))
+                    {
+                        SetDoubleClickWidthHeight(newValue);
+                    }
+                }
+            }
+        }
+
+        // Change the size of the rectangle within which a second click is considered a double-click
+        static void SetDoubleClickWidthHeight(int value)
+        {
+            SystemParametersInfo(SPI_SETDOUBLECLKWIDTH, (uint)value, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+            SystemParametersInfo(SPI_SETDOUBLECLKHEIGHT, (uint)value, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
         }
         
         // Function to run the code to disable right-click drag
@@ -339,6 +372,11 @@ namespace SystemTrayApp
 
         const uint SPI_SETDRAGWIDTH = 0x004C;
         const uint SPI_SETDRAGHEIGHT = 0x004D;
+
+        // Constants for double-click sensitivity
+
+        const uint SPI_SETDOUBLECLKWIDTH = 0x001D;
+        const uint SPI_SETDOUBLECLKHEIGHT = 0x001E;
         const uint SPIF_UPDATEINIFILE = 0x1;
         const uint SPIF_SENDCHANGE = 0x2;
     }
@@ -366,6 +404,252 @@ namespace SystemTrayApp
             catch { }
 
             return defaultValue;
+        }
+    }
+
+    public class TrayMenuForm : Form
+    {
+        private EventHandler _selectedHandler;
+
+        public static void Show(string[] labels, EventHandler[] handlers)
+        {
+            EventHandler selected = null;
+            using (var form = new TrayMenuForm(labels, handlers))
+            {
+                form.ShowDialog();
+                selected = form._selectedHandler;
+            }
+            selected?.Invoke(null, EventArgs.Empty);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        private TrayMenuForm(string[] labels, EventHandler[] handlers)
+        {
+            bool dark = InputDialog.IsDark();
+
+            Color backColor = dark ? Color.FromArgb(32, 32, 32) : Color.FromArgb(240, 240, 240);
+            Color foreColor = dark ? Color.White : Color.Black;
+            Color hoverColor = dark ? Color.FromArgb(60, 60, 60) : Color.White;
+
+            FormBorderStyle = FormBorderStyle.None;
+            ControlBox = false;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ShowInTaskbar = false;
+            TopMost = true;
+            StartPosition = FormStartPosition.Manual;
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            Padding = new Padding(0);
+            BackColor = backColor;
+            ForeColor = foreColor;
+            Font = new Font("Segoe UI", 9);
+
+            Shown += (s, e) =>
+            {
+                RoundCorners(Handle);
+                Activate();
+            };
+            Deactivate += (s, e) => Close();
+
+            int itemHeight = 32;
+            int vPad = 6;
+            int minWidth = 120;
+            int hPad = 16;
+            int yOffset = vPad;
+
+            // Measure the widest label
+            int maxWidth = minWidth;
+            foreach (string label in labels)
+            {
+                int w = TextRenderer.MeasureText(label, Font).Width + hPad * 2;
+                if (w > maxWidth) maxWidth = w;
+            }
+
+            for (int i = 0; i < labels.Length; i++)
+            {
+                var panel = new Panel
+                {
+                    Width = maxWidth,
+                    Height = itemHeight,
+                    Location = new Point(0, yOffset),
+                    BackColor = backColor
+                };
+
+                var lbl = new Label
+                {
+                    Text = labels[i],
+                    Width = maxWidth,
+                    Height = itemHeight,
+                    Location = new Point(hPad, 0),
+                    AutoSize = false,
+                    BackColor = backColor,
+                    ForeColor = foreColor,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Cursor = Cursors.Default
+                };
+
+                panel.Controls.Add(lbl);
+                Controls.Add(panel);
+                yOffset += itemHeight;
+
+                var currentPanel = panel;
+                var currentLabel = lbl;
+                var currentHandler = handlers[i];
+
+                Action setHover = () =>
+                {
+                    currentPanel.BackColor = hoverColor;
+                    currentLabel.BackColor = hoverColor;
+                };
+                Action clearHover = () =>
+                {
+                    currentPanel.BackColor = backColor;
+                    currentLabel.BackColor = backColor;
+                };
+                Action click = () =>
+                {
+                    _selectedHandler = currentHandler;
+                    Close();
+                };
+
+                currentPanel.MouseEnter += (s, e) => setHover();
+                currentPanel.MouseLeave += (s, e) => clearHover();
+                currentPanel.Click += (s, e) => click();
+                currentLabel.MouseEnter += (s, e) => setHover();
+                currentLabel.MouseLeave += (s, e) => clearHover();
+                currentLabel.Click += (s, e) => click();
+            }
+
+            yOffset += vPad;
+
+            // Position centered under cursor, clamped to screen
+            Point cursor = Cursor.Position;
+            Screen screen = Screen.FromPoint(cursor);
+            int w2 = maxWidth;
+            int h2 = yOffset;
+            int x = Math.Max(screen.WorkingArea.Left, Math.Min(screen.WorkingArea.Right - w2, cursor.X - w2 / 2));
+            int y = Math.Max(screen.WorkingArea.Top, Math.Min(screen.WorkingArea.Bottom - h2, cursor.Y));
+            Location = new Point(x, y);
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        private static void RoundCorners(IntPtr hwnd)
+        {
+            int preference = 2; // DWMWCP_ROUND
+            DwmSetWindowAttribute(hwnd, 33 /* DWMWA_WINDOW_CORNER_PREFERENCE */, ref preference, sizeof(int));
+        }
+    }
+
+    public class InputDialog : Form
+    {
+        private Label promptLabel;
+        private TextBox inputBox;
+        private Button okButton;
+
+        private InputDialog(string prompt, string title, string defaultValue)
+        {
+            bool dark = IsDark();
+
+            Text = title;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.Manual;
+            MinimizeBox = false;
+            MaximizeBox = false;
+            ShowInTaskbar = false;
+            TopMost = true;
+            ClientSize = new System.Drawing.Size(360, 130);
+
+            Shown += (s, e) =>
+            {
+                Point cursor = Cursor.Position;
+                Screen screen = Screen.FromPoint(cursor);
+                int x = Math.Max(screen.WorkingArea.Left, Math.Min(screen.WorkingArea.Right - Width, cursor.X - Width / 2));
+                int y = Math.Max(screen.WorkingArea.Top, Math.Min(screen.WorkingArea.Bottom - Height, cursor.Y - Height / 2));
+                Location = new Point(x, y);
+            };
+
+            promptLabel = new Label();
+            promptLabel.Text = prompt;
+            promptLabel.AutoSize = false;
+            promptLabel.Size = new System.Drawing.Size(340, 40);
+            promptLabel.Location = new System.Drawing.Point(10, 12);
+
+            inputBox = new TextBox();
+            inputBox.Text = defaultValue ?? "";
+            inputBox.Size = new System.Drawing.Size(340, 23);
+            inputBox.Location = new System.Drawing.Point(10, 58);
+            inputBox.BorderStyle = BorderStyle.FixedSingle;
+
+            okButton = new Button();
+            okButton.Text = "OK";
+            okButton.Size = new System.Drawing.Size(80, 26);
+            okButton.Location = new System.Drawing.Point((ClientSize.Width - 80) / 2, 92);
+            okButton.DialogResult = DialogResult.OK;
+
+            AcceptButton = okButton;
+
+            Controls.Add(promptLabel);
+            Controls.Add(inputBox);
+            Controls.Add(okButton);
+
+            if (dark)
+            {
+                DarkTitleBar(Handle);
+                BackColor = Color.FromArgb(32, 32, 32);
+                ForeColor = Color.White;
+                inputBox.BackColor = Color.FromArgb(60, 60, 60);
+                inputBox.ForeColor = Color.White;
+                okButton.FlatStyle = FlatStyle.Flat;
+                okButton.FlatAppearance.BorderColor = SystemColors.Highlight;
+                okButton.FlatAppearance.BorderSize = 1;
+                okButton.BackColor = Color.FromArgb(60, 60, 60);
+                okButton.FlatAppearance.MouseOverBackColor = Color.Black;
+            }
+        }
+
+        public static string Show(string prompt, string title, string defaultValue)
+        {
+            using (var dlg = new InputDialog(prompt, title, defaultValue))
+            {
+                if (dlg.ShowDialog() == DialogResult.OK)
+                    return dlg.inputBox.Text;
+                return null;
+            }
+        }
+
+        public static bool IsDark()
+        {
+            const string keyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+            const string valueName = "AppsUseLightTheme";
+
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(keyPath))
+            {
+                if (key != null)
+                {
+                    object value = key.GetValue(valueName);
+                    if (value is int intValue)
+                        return intValue == 0;
+                }
+            }
+            return false;
+        }
+
+        public enum DWMWINDOWATTRIBUTE : uint
+        {
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20,
+        }
+
+        [DllImport("dwmapi.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+        public static extern void DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref int pvAttribute, uint cbAttribute);
+
+        static void DarkTitleBar(IntPtr hWnd)
+        {
+            var preference = Convert.ToInt32(true);
+            DwmSetWindowAttribute(hWnd, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, ref preference, sizeof(uint));
         }
     }
 
