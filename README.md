@@ -42,7 +42,7 @@ Select this option to close the app
 
 ## Usage and memory impact
 
-When left running as a system tray app, DragOptions uses around 5-6 MB RAM. It's only necessary to leave it running for the `Disable right-click drag` option. if you only use it to change drag sensitivity or double-click sensitivity, there's no need to leave it running. 
+When left running as a system tray app, DragOptions uses around 5-6 MB RAM. It's only necessary to leave it running for the `Disable right-click drag` option. If you only use it to change drag sensitivity or double-click sensitivity, there's no need to leave it running. 
 
 ## How to Download and Install
 
