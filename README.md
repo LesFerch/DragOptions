@@ -2,7 +2,10 @@
 
 ### Version 2.0.0
 
-<img width="258" height="219" alt="image" src="https://github.com/user-attachments/assets/fc1a3280-258c-4b6e-a4b9-6e7559b53c61" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/04a852bf-cfda-4663-9d5a-0274b1f83746">
+  <img alt="image" src="https://github.com/user-attachments/assets/1e320a1c-3427-44b2-87f0-adcbd950c29c" style="max-width: 100%; height: auto;" />
+</picture>
 
 This program loads to the System Tray and provides options that help prevent unwanted drag operations and/or ensure a double-click is registered. This is mostly of interest to users with high dpi displays.
 
@@ -10,7 +13,10 @@ This program loads to the System Tray and provides options that help prevent unw
 
 ## Change drag sensitivity
 
-<img width="298" height="146" alt="image" src="https://github.com/user-attachments/assets/b6b82cbd-8896-4103-b7f0-987e4706dbb8" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/f697eb7a-2fd3-469d-9933-b6c6adfda076">
+  <img alt="image" src="https://github.com/user-attachments/assets/b08f60e3-cef4-4927-90ad-18a9a2b268f0" style="max-width: 100%; height: auto;" />
+</picture>
 
 Select this option to set the mouse drag sensitivity. The change is immediate and permanent (per user) when you click **OK**. The value is the number of pixels you must move the cursor, with the button held down, before a drag operation starts.
 
@@ -18,7 +24,10 @@ On high density screens, the default value of 4 pixels is too little for most us
 
 ## Change double-click sensitivity
 
-<img width="299" height="145" alt="image" src="https://github.com/user-attachments/assets/5ea1adb9-626e-48d1-a24e-047bd2e1cd34" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e8caa601-521f-41dd-a1d5-c2cfbad35b89">
+  <img alt="image" src="https://github.com/user-attachments/assets/a033a8d0-53a2-4c81-82f3-6f9e759c8c83" style="max-width: 100%; height: auto;" />
+</picture>
 
 Select this option to set the double-click sensitivity. The change is immediate and permanent (per user) when you click **OK**. The value is the number of pixels the cursor is allowed to move between first and second click and still be registered as a double-click. Increasing this value should make it easier to double-click on high dpi displays.
 
@@ -62,10 +71,6 @@ When left running as a system tray app, DragOptions uses around 5-6 MB RAM. It's
 **Note**: If you move **DragOptions.exe** to a new location, just exit the app (if it's still in the System Tray). Then double-click the app to automatically update the startup registry entry.
 
 ## It's Multilingual!
-
-Here's an example of DragOptions installed for German (de-DE):
-
-<img width="335" height="225" alt="image" src="https://github.com/user-attachments/assets/7608d097-de3b-4f04-b9dc-1511d2b06411" />
 
 The file **Language.ini** contains the app's text strings for all languages. It can be deleted if you only need English. Otherwise, keep it in the same folder as **DragOptions.exe**.
 
